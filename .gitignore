@@ -1,0 +1,11 @@
+[Bb]in/
+[Oo]bj/
+
+# Rider
+.idea/
+
+# Visual Studio
+.vs/
+
+# VS Code
+.vscode/

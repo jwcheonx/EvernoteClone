@@ -1,0 +1,35 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mod="clr-namespace:EvernoteClone.Models"
+    xmlns:vc="clr-namespace:EvernoteClone.Views.Converters">
+    <DataTemplate x:Key="NoteDataTemplate" DataType="{x:Type mod:Note}">
+        <StackPanel Margin="10">
+            <TextBlock
+                Margin="0,0,0,30"
+                FontSize="15"
+                FontWeight="Bold"
+                Text="{Binding Title}" />
+            <TextBlock Foreground="DodgerBlue">
+                <TextBlock.Text>
+                    <Binding Path="UpdatedAt">
+                        <Binding.Converter>
+                            <vc:UnixTimeConverter />
+                        </Binding.Converter>
+                    </Binding>
+                </TextBlock.Text>
+            </TextBlock>
+            <StackPanel.ContextMenu>
+                <ContextMenu>
+                    <!-- TODO: Open rename dialog when clicked. -->
+                    <MenuItem Header="Rename" />
+                    <Separator />
+                    <MenuItem
+                        Command="{Binding DeleteNoteCommand, Source={StaticResource NotesViewModel}}"
+                        CommandParameter="{Binding}"
+                        Header="Delete" />
+                </ContextMenu>
+            </StackPanel.ContextMenu>
+        </StackPanel>
+    </DataTemplate>
+</ResourceDictionary>

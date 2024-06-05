@@ -1,0 +1,14 @@
+﻿<Application
+    x:Class="EvernoteClone.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vc="clr-namespace:EvernoteClone.Views.Converters"
+    xmlns:vm="clr-namespace:EvernoteClone.ViewModels"
+    x:ClassModifier="internal"
+    StartupUri="Views/NotesWindow.xaml">
+    <Application.Resources>
+        <!-- TODO: Instantiate ViewModel at View-level. -->
+        <vm:NotesViewModel x:Key="NotesViewModel" />
+        <vc:CommandParametersConverter x:Key="CommandParametersConverter" />
+    </Application.Resources>
+</Application>

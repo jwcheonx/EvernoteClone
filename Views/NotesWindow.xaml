@@ -1,0 +1,152 @@
+﻿<Window
+    x:Class="EvernoteClone.Views.NotesWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="EvernoteClone"
+    Width="750"
+    Height="400"
+    x:ClassModifier="internal"
+    DataContext="{StaticResource NotesViewModel}"
+    mc:Ignorable="d">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Templates/NotebookDataTemplate.xaml" />
+                <ResourceDictionary Source="Templates/NoteDataTemplate.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="File">
+                <MenuItem Command="{Binding NewNotebookCommand}" Header="New Notebook" />
+                <MenuItem
+                    Command="{Binding NewNoteCommand}"
+                    CommandParameter="{Binding SelectedNotebookId}"
+                    Header="New Note" />
+                <Separator />
+                <MenuItem Command="{Binding ExitCommand}" Header="Exit" />
+            </MenuItem>
+        </Menu>
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock Text="{Binding CharacterCount, StringFormat={}{0} characters}" />
+            </StatusBarItem>
+        </StatusBar>
+        <ListView
+            Width="120"
+            Margin="1,0"
+            Background="MidnightBlue"
+            DockPanel.Dock="Left"
+            ItemTemplate="{StaticResource NotebookDataTemplate}"
+            ItemsSource="{Binding Notebooks}"
+            SelectedValue="{Binding SelectedNotebookId, Mode=OneWayToSource}"
+            SelectedValuePath="Id" />
+        <ListView
+            x:Name="NoteListView"
+            Width="170"
+            DockPanel.Dock="Left"
+            ItemTemplate="{StaticResource NoteDataTemplate}"
+            ItemsSource="{Binding Notes}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="SelectionChanged">
+                    <i:InvokeCommandAction Command="{Binding LoadNoteCommand}">
+                        <i:InvokeCommandAction.CommandParameter>
+                            <MultiBinding Converter="{StaticResource CommandParametersConverter}">
+                                <Binding ElementName="NoteContentTextBox" Path="Document.Blocks" />
+                                <Binding Path="SelectedItem.Filename" RelativeSource="{RelativeSource FindAncestor, AncestorType=ListView}" />
+                                <Binding ElementName="NoteContentTextBox" Path="Document.ContentStart" />
+                                <Binding ElementName="NoteContentTextBox" Path="Document.ContentEnd" />
+                            </MultiBinding>
+                        </i:InvokeCommandAction.CommandParameter>
+                    </i:InvokeCommandAction>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </ListView>
+        <ToolBarTray DockPanel.Dock="Top">
+            <ToolBar ToolBarTray.IsLocked="True">
+                <Button Margin="0,0,5,0" Command="{Binding SaveNoteCommand}">
+                    <Button.CommandParameter>
+                        <MultiBinding Converter="{StaticResource CommandParametersConverter}">
+                            <Binding ElementName="NoteListView" Path="SelectedItem" />
+                            <Binding ElementName="NoteContentTextBox" Path="Document.ContentStart" />
+                            <Binding ElementName="NoteContentTextBox" Path="Document.ContentEnd" />
+                        </MultiBinding>
+                    </Button.CommandParameter>
+                    Save
+                </Button>
+                <Button
+                    Margin="0,0,5,0"
+                    Command="{Binding RecognizeSpeechCommand}"
+                    CommandParameter="{Binding ElementName=NoteContentTextBox}">
+                    Speak
+                </Button>
+                <ToggleButton
+                    Margin="0,0,5,0"
+                    Command="{Binding BoldUnboldCommand}"
+                    CommandParameter="{Binding Selection, ElementName=NoteContentTextBox}"
+                    FontWeight="Bold"
+                    IsChecked="{Binding IsBoldButtonChecked}">
+                    B
+                </ToggleButton>
+                <ToggleButton
+                    Margin="0,0,5,0"
+                    Command="{Binding ItalicizeUnitalicizeCommand}"
+                    CommandParameter="{Binding Selection, ElementName=NoteContentTextBox}"
+                    FontStyle="Italic"
+                    IsChecked="{Binding IsItalicButtonChecked}">
+                    I
+                </ToggleButton>
+                <ToggleButton
+                    Margin="0,0,5,0"
+                    Command="{Binding UnderlineOrRevertCommand}"
+                    CommandParameter="{Binding Selection, ElementName=NoteContentTextBox}"
+                    IsChecked="{Binding IsUnderlineButtonChecked}">
+                    <TextBlock TextDecorations="Underline">U</TextBlock>
+                </ToggleButton>
+                <ComboBox
+                    Width="100"
+                    ItemsSource="{Binding FontFamilies}"
+                    SelectedItem="{Binding SelectedFontFamily}">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="SelectionChanged">
+                            <i:InvokeCommandAction Command="{Binding ChangeFontFamilyCommand}" CommandParameter="{Binding Selection, ElementName=NoteContentTextBox}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </ComboBox>
+                <!-- TODO: Replace the event handler with a command. -->
+                <ComboBox
+                    Width="50"
+                    IsEditable="True"
+                    ItemsSource="{Binding FontSizes}"
+                    SelectedItem="{Binding SelectedFontSize}"
+                    TextBoxBase.TextChanged="FontSizeComboBoxTextChanged" />
+            </ToolBar>
+        </ToolBarTray>
+        <Grid Margin="1,0">
+            <RichTextBox x:Name="NoteContentTextBox">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <i:InvokeCommandAction Command="{Binding EvaluateFontControlsCommand}" CommandParameter="{Binding Selection, RelativeSource={RelativeSource AncestorType=RichTextBox}}" />
+                    </i:EventTrigger>
+                    <i:EventTrigger EventName="LostFocus">
+                        <i:InvokeCommandAction Command="{Binding ResetFontControlsCommand}" />
+                    </i:EventTrigger>
+                    <i:EventTrigger EventName="TextChanged">
+                        <i:InvokeCommandAction Command="{Binding CountCharactersCommand}">
+                            <i:InvokeCommandAction.CommandParameter>
+                                <MultiBinding Converter="{StaticResource CommandParametersConverter}">
+                                    <Binding Path="Document.ContentStart" RelativeSource="{RelativeSource AncestorType=RichTextBox}" />
+                                    <Binding Path="Document.ContentEnd" RelativeSource="{RelativeSource AncestorType=RichTextBox}" />
+                                </MultiBinding>
+                            </i:InvokeCommandAction.CommandParameter>
+                        </i:InvokeCommandAction>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </RichTextBox>
+        </Grid>
+    </DockPanel>
+</Window>
